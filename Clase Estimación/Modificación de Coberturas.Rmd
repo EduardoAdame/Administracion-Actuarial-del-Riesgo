@@ -1,0 +1,769 @@
+---
+title: "Estimaci?n con R . Actividad 1"
+author: "Carlos Ca?izares"
+date: "12 de Agosto 19"
+output: html_document
+df_print: paged
+---
+
+Hemos visto que no basta s?lo con conocer la familia param?trica asociada a los montos que representen p?rdida (sea para una cartera de seguros, financiera, etc.). Adem?s, en la distribuci?n asociada a p?rdidas derivadas de reclamaciones de contratos de seguros se deber?a contemplar la modificaci?n del valor dada la cobertura que el asegurado tenga contratadas. Ejemplos de coberturas inherentes a un contrato de seguros pueden ser el coaseguro o el deducible; adem?s. debemos tomar en cuenta el comportamiento de las reclamaciones monetariamente en el tiempo (inflaci?n) y adem?s, considera cuando la instituci?n aseguradora contempla contratos de reaseguro.   
+
+Antes de representar estas modificaciones al pago de las p?rdidas mediante variables aleatorias y las funciones que las describen, es conveniente distinguir entre dos asociadas a esta situaci?n. Una v.a. relacionada al pago de la p?rdida, en la que el valor cero es posible, y ocurre cuando hay una p?rdida sin pago. La segunda corresponde a la que mide el pago del "pago", que queda indefinida si no hay pago.
+
+
+
+
+
+
+## Coaseguro
+
+Sea $x$ el monto de p?rdida asiciado a un siniestro, luego, tomemos $\alpha \epsilon (0,1]$ un **factor de coaseguro**, el cual es la proporci?n de pago que le corresponde a la CIA de seguros, mieentras el poseedor de la p?liza paga la fracci?n restante, la v.a. de pago por parte de la aseguradora es: 
+
+$$Y=\alpha X$$ 
+
+cuya densidad puede obtenerse de la siguiente manera: 
+
+$$F_Y(y)\ddot{=}\mathbb{P}[Y\leq y]=\mathbb{P}[\alpha X \leq y]=\mathbb{P}[ X \leq \frac{y}{\alpha}]=F_X(\frac{y}{\alpha})$$ 
+
+$$\Rightarrow f_Y(y)=\frac{d}{dy}F_Y(y)=\frac{d}{dy}F_X\left(\frac{y}{\alpha}\right)=\frac{1}{\alpha}f_X\left(\frac{y}{\alpha}\right)$$
+
+*Otra manera de obtener lo anterior es con el teorema de cambio de variable.*
+
+$Y=\varphi(X)=\alpha X$ 
+
+$\Rightarrow \varphi^{-1}(X)=\frac{X}{\alpha}$ 
+
+$\Rightarrow \left| \frac{d}{dx}\varphi^{-1}(X)\right|=\frac{1}{\alpha}$ 
+
+$\Rightarrow f_Y(y)= \left| \frac{d}{dy}\varphi^{-1}(y)\right|f_X(\varphi^{-1}(y))=\frac{1}{\alpha}f_X\left(\frac{y}{\alpha}\right)$ 
+
+*//Nota: el soporte de Y estar? dado por $\{y|\frac{y}{\alpha}\in sop\{x\}\}$//*
+
+Obtener la esperanza de esta variable aleatoria es sencillo en t?rminos de la esperanza de X, debido a la linealidad de la esperanza, se tiene que: 
+
+$$\mathbb{E}[Y]=\mathbb{E}[\alpha X]=\alpha\mathbb{E}[X]$$ 
+
+Ejemplo: 
+
+Sea $X\sim Unif(100,200)$ y consideremos $\alpha=50\%$ as?; $Y=\alpha X$ implica que: 
+
+
+$f_Y(y)=\frac{1}{0.5}f_X\left(\frac{y}{0.5}\right)=2f_X(2y)=2\left(\frac{1}{200-100}\mathbb{I}_{(100,200)}^{(2y)}\right)$
+
+
+Observemos que :$100\leq2y\leq200 \Leftrightarrow 50\leq y \leq 100$*//*
+
+
+
+$=\frac{1}{50}\mathbb{I}_{(50,100)}^{(y)}=\frac{1}{100-50}\mathbb{I}_{(50,100)}^{(y)}$
+
+Entonces:
+
+
+$\therefore Y=0.5X\sim Unif(50,100)$ 
+
+$\Rightarrow \mathbb{E}[Y]=0.5\mathbb{E}[X]=0.5\left(\frac{100+200}{2}\right)=75$ 
+
+
+```{r}
+# Coaseguro ---------------------------------------------------------------
+
+#Uniforme 
+min<-100 ; max <- 200
+set.seed(27)
+X<-runif(100000,min,max)
+
+#Fijamos un factor de coaseguro
+alpha<-0.5
+Y<-0.5*X
+
+#Comparemos nuestras poblaciones
+
+#Sin coaseguro
+hist(X,col="orange",probability = T)
+abline(h=1/100,col="red",lwd=2)
+mean(X)
+
+#Con coaseguro
+hist(Y,col="green",probability = T)
+abline(h=1/50,col="red",lwd=2)
+0.5*mean(X)
+mean(Y)
+```
+
+
+
+
+
+
+## Inflaci?n
+
+Consideremos una tasa de inflaci?n $r\geq 0$ y tomemos $X$ el monto de p?rdida asociado a un siniestro, vamos a pensar que, de materializarse un siniestro ?ste sufrir?? un cambio en su valor monetario provocado por la inflaci?n, de tal manera que la aseguradora deber?? pagar:
+
+$$Y=(1+r)X$$ 
+
+En caso de que el siniestro ocurra y la aseguradora lo deba pagar. De manera similar al coaseguro:
+
+$$F_Y(y)\ddot{=}\mathbb{P}[Y\leq y]= \mathbb{P}[(1+r) X \leq y]=\mathbb{P}\left[ X \leq \frac{y}{(1+r)}\right]=F_X\left(\frac{y}{(1+r)}\right)$$
+
+Y es claro que entonces
+
+$$f_Y(y)=\frac{d}{dy}F_Y(y)=\frac{d}{dy}F_X\left(\frac{y}{(1+r)}\right)=\frac{1}{(1+r)}f_X\left(\frac{y}{(1+r)}\right)$$ 
+
+De igual forma, la esperanza de esta variable aleatoria estar?? dada por: 
+
+$$\mathbb{E}[Y]=\mathbb{E}[(1+r) X]=(1+r)\mathbb{E}[X]$$ 
+
+Ejemplo: 
+
+Sea $X\sim Unif(0,100)$, consideremos $r=10\%$, as?; $Y=(1+r) X$ tenemos que: 
+
+$$f_Y(y)=\frac{1}{(1+r)}f_X\left(\frac{y}{(1+r)}\right)=\frac{1}{(1.1)}f_X\left(\frac{y}{(1.1)}\right)=\frac{1}{(1.1)(1000)}\mathbb{I}_{(0,1000)}^{\left(\frac{y}{1.1}\right)}$$
+Observemos que:
+
+*//* $0\leq \frac{y}{(1.1)}\leq1000 \Leftrightarrow 0\leq y \leq 1100$ *//*
+
+Entonces:
+
+$=\frac{1}{1100}\mathbb{I}_{(0,1100)}^{(y)}$
+
+$\therefore Y=(1.1)X\sim Unif(0,1100)$ 
+
+$\Rightarrow \mathbb{E}[Y]=(1+r)\mathbb{E}[X]=1.1\left(\frac{1000}{2}\right)=550$ 
+
+*//Observaci?n: La inflaci?n aumenta el valor esperado del siniestro.//* 
+
+```{r}
+###############
+## Inflaci?n ##
+###############
+
+## Uniforme 
+min<-0 ; max <- 1000
+set.seed(27)
+X<-runif(100000,min,max)
+
+## Fijamos un factor de coaseguro
+r<-0.1
+Y<-(1+r)*X
+
+## Comparemos nuestras poblaciones
+
+## Sin inflaci?n
+hist(X,col="blue",probability = T)
+abline(h=1/1000,col="red",lwd=2)
+mean(X)
+
+## Con inflaci?n
+hist(Y,col="green",probability = T)
+abline(h=1/1100,col="red",lwd=2)
+(1+r)*mean(X)
+mean(Y)
+```
+
+
+
+
+## Deducible
+
+Se entender? como la cantidad o porcentaje establecido en una p?liza cuyo importe debe
+superarse para que se pague una reclamaci?n. En t?rminos t?cnicos, Las p?lizas de seguro se venden con un deducible, $d$, por pago de la p?rdida y funcionan de la siguiente forma, cuando la p?rdida, $x$, es menor que $d$, la compa??a aseguradora no pagar? nada; cuando la p?rdida es superior a $d$, la compa??a paga $x-d$. Entonces las variables aleatorias asociadas son:
+
+### El "pago del pago"
+$$
+Y^P=
+\begin{cases}
+no \ definida \hspace{0.8cm} \text{si} \hspace{0.4cm} X\leq d\\
+\hspace{0.4cm} X-d\hspace{0.6cm} \hspace{0.9cm} \text{si} \hspace{0.4cm} X> d 
+\end{cases}
+$$ 
+
+Esta variable tiene dos caracter?sticas muy importantes, la primera , es que esta variable tiene truncamiento por la izquierda, ya que aquellas observaciones por debajo del valor del deducible, $d$ , son omitidas y adem?s est? trasladada, esto debido a que los valores que toma la v.a. empiezan a partir de $d$.
+
+
+### El "pago por la p?rdida"
+
+
+$$
+Y^L=(Y-d)_+
+\begin{cases}
+\hspace{0.4cm}0  \hspace{0.8cm} \text{si} \hspace{0.4cm} X\leq d\\
+ X-d\hspace{0.35cm} \text{si} \hspace{0.4cm} X> d 
+\end{cases}
+$$ 
+
+Observemos que podemos transformar esta definici?n de la siguiente forma:
+
+$$
+Y^L\ddot{=} m?x\{X-d,0\}=
+\begin{cases}
+X-d \hspace{0.8cm} \text{si} \hspace{0.4cm} d<X\leq b \Leftrightarrow 0<Y^L\leq b-d\\
+\hspace{0.4cm} 0\hspace{0.6cm} \hspace{0.66cm} \text{si} \hspace{0.4cm} X\leq d \Leftrightarrow Y^L\equiv0
+\end{cases}
+$$ 
+Es el monto que la aseguradora cubrir??, en caso de que un ***siniestro se materialice*** y ***supere el deducible***. Luego; sea $y \in (0,b-d]$, 
+
+$F_Y(y)\ddot{=}\mathbb{P}[Y\leq y]=\mathbb{P}[Y^L\leq y|Y^L>0]\mathbb{P}[Y^L>0]+\mathbb{P}[Y^L\leq y | Y^L\equiv0]\mathbb{P}[Y^L\equiv0]$ 
+
+Notemos que $\mathbb{P}[Y^L\leq y | Y^L\equiv0]$ es 1 
+
+$=\frac{\mathbb{P}[0<Y^L\leq y]}{\mathbb{P}[Y^L>0]}\mathbb{P}[Y^L>0]+\mathbb{P}[Y^L\equiv 0]$ 
+
+$=\mathbb{P}[0<X-d\leq y]+\mathbb{P}[X\leq d]$ 
+
+$=\mathbb{P}[d<X\leq y+d]+\mathbb{P}[X\leq d]$ 
+
+$=\mathbb{P}[X\leq y+d]-\mathbb{P}[X\leq d]+\mathbb{P}[X\leq d]$ 
+
+$=\mathbb{P}[X\leq y+d]$ 
+
+$=F_X(y+d)$ 
+
+$\Rightarrow S_{Y^L}(y)\doteq 1-F_{Y^L}(y)=1-F_{X}(y+d)\doteq S_X(y+d)$ 
+
+$\Rightarrow f_{Y^L}(y)=\frac{d}{dy}F_{Y^L}(y)=F_{X}(y+d)=f_X(y+d)$ 
+
+La *variable aleatoria* anterior *es mixta*, pues acumula probabilidad en un punto y luego sigue la forma de una variable aleatoria continua (de hecho X) pero desfasada:
+
+$\mathbb{P}[Y^L\leq 0]=\mathbb{P}[Y^L =0]=\mathbb{P}[X\leq d]=F_X(d)$ por lo tanto: 
+
+$$
+f_{Y^L}(y)=
+\begin{cases}
+F_X(d), \hspace{0.8cm} \text{si} \hspace{0.4cm} y=0\\
+f_X(y+d), \hspace{0.8cm} \text{si} \hspace{0.4cm} 0<y<b-d
+\end{cases}
+$$ 
+
+
+Notemos tambi?n que: 
+
+$\mathbb{E}[Y^L]=(0)(F_X(d))+\int_0^{b-d}xf_X(x+d)dx$ 
+
+hagamos un cambio de variable donde: 
+
+$\alpha=x+d \Rightarrow x=\alpha -d$ 
+
+Entonces 
+
+$=\int_d^b(\alpha-d)f_X(\alpha)d\alpha$ 
+
+
+$$\begin{array}{cr}
+u=\alpha -d &dv=f_x(\alpha) \\
+du=d\alpha &v=-S_X(\alpha) 
+\end{array}$$ 
+
+$=-(\alpha-d)S_X(\alpha)|_d^b +\int_d^bS_x(\alpha)d\alpha$ 
+
+$=-(b-d)S_X(b)+(d-d)S_X(\alpha)+\int_d^bS_X(\alpha)d\alpha$ 
+
+$=-0+0+\int_d^bS_X(\alpha)d\alpha$ 
+
+$=\int_d^bS_X(\alpha)d\alpha$ 
+
+si $b\rightarrow \infty$ 
+
+$\Rightarrow \mathbb{E}[Y^L]=\int_d^\infty uf_x(u)du-d[1-F_X(d)]=\int_d^\infty uf_X(u)du-dS_X(d)$ 
+
+A forma de resumen tenemos entonces que:
+
+$$f_{Y{P}}=\frac{f_X(y+d)}{S_x(d)}, \ \ \ \ \ \ y>0 $$
+
+$$S_{Y{P}}=\frac{S_X(y+d)}{S_x(d)}$$
+
+$$F_{Y{P}}=\frac{F_X(y+d)-F_X(d)}{1-F_x(d)}$$
+
+
+$$h_{Y{P}}=\frac{f_X(y+d)}{S_x(y+d)}=h_X(y+d)$$
+
+Mientras que:
+
+$$f_{Y{L}}=f_X(y+d), \ \ \ \ \ \ y>0 $$
+
+$$S_{Y{L}}=S_X(y+d), \ \ \ \ \ \ y\geq 0 $$
+
+$$F_{Y{L}}=F_X(y+d), \ \ \ \ \ \ y\geq 0 $$
+
+
+Donde S(\*) y h(\*) son las correspondientes funciones de supervivencia y riesgo, respectivamente. Es importante remarcar que si se cambia el deducible, se modifica la frecuencia con la que se hacen los pagos, sin embargo, la frecuencia de p?rdidas permanece inalterada.
+
+
+
+### Ejemplo Pareto
+
+Supongamos que nuestra variable individual de p?rdida se distribuye Pareto con \alpha= 3 y \tetha= 2000, y tenemos un deducible de $d=500$. Utilizando las f?rmulas anteriores, tenemos:
+
+$$f_{Y{P}}=\frac{3(2000)^3(2000+y+500)^{-4}}{(2000)^3(2000+500)^{-3}}=\frac{3(2500)^3}{(2500+y)^4} $$
+$$S_{Y{P}}= (\frac{2500}{2500+y})^3  $$
+
+$$F_{Y{P}}=1- (\frac{2500}{2500+y})^3  $$
+
+$$h_{Y{P}}=\frac{3}{2500+y}  $$
+
+
+que es una distribuci?n $Pareto(3,2500)$. Para nuestra variable de p?rdida, tenemos:
+$$
+f_{Y^L}(y)=
+\begin{cases}
+\hspace{0.2cm} 0.488  \hspace{0.8cm} \text{si} \hspace{0.4cm} y=0\\
+\\
+ \frac{3(2000)^3}{(2500+y)^4}\hspace{0.5cm} \text{si} \hspace{0.4cm} y> 0 
+\end{cases}
+$$ 
+
+$$
+F_{Y^L}(y)=
+\begin{cases}
+\hspace{0.9cm} 0.488  \hspace{0.8cm} \text{si} \hspace{0.4cm} y=0\\
+\\
+ 1-\frac{3(2000)^3}{(2500+y)^4}\hspace{0.5cm} \text{si} \hspace{0.4cm} y> 0 
+\end{cases}
+$$ 
+
+
+$$
+S_{Y^L}(y)=
+\begin{cases}
+\hspace{0.2cm} 0.512  \hspace{0.8cm} \text{si} \hspace{0.4cm} y=0\\
+\\
+ \frac{(2000)^3}{(2500+y)^4}\hspace{0.5cm} \text{si} \hspace{0.4cm} y> 0 
+\end{cases}
+$$ 
+
+$$
+S_{Y^L}(y)=
+\begin{cases}
+ no \ definida  \hspace{0.8cm} \text{si} \hspace{0.4cm} y=0\\
+\\
+\hspace{0.4cm} \frac{3}{2500+y}\hspace{1.4cm} \text{si} \hspace{0.4cm} y> 0 
+\end{cases}
+$$ 
+
+
+
+### Valores esperados
+
+
+El $k-?simo$ momento de estas variables se define para $Y^P$ como
+
+$$\mathbb{E}[(X-d)^k|X>d] =\frac{\int_{d}^{\infty}(x-d)^kf(x)dx}{1-F(d)}$$
+
+y para $Y^L$ como
+
+$$\mathbb{E}[(X-d)_+^k|X>d] =\int_{d}^{\infty}(x-d)^kf(x)dx$$
+
+Si definimos $min(X,d)=X \wedge d$ podemos observar que:
+
+$$ X=(X-d)_+ + (X \wedge d)$$
+
+De donde se desprende que, en una p?liza con un deducible ordinario, el costo esperado por p?rdida es:
+
+$$\mathbb{E}[(X-d)_+] = \mathbb{E}[X] - \mathbb{E}[X \wedge d]  $$
+
+
+y el coste esperado por pago es:
+
+
+$$\frac{\mathbb{E}[X] - \mathbb{E}[X \wedge d]}{1-F(d)}  $$
+
+Quizá sea intuitivo que $\mathbb{E}[(X\wedge d)^k]$ se calcule como:
+
+$$\mathbb{E}[(X\wedge d)^k]=\int_{-\infty}^{d}x^k f(x)dx + d^k[1-F(d)]$$
+
+entonces, en general tenemos que:
+
+$$\mathbb{E}[X]=\int_{0}^{\infty}[1-F(x)]dx=\int_{0}^{\infty}S(x)dx$$
+$$\mathbb{E}[(X\wedge d)]=\int_{0}^{d}[1-F(x)]dx$$
+$$\mathbb{E}[(X\wedge d)_+]=\int_{d}^{\infty}[1-F(x)]dx$$
+
+Para el ejemplo de la $Pareto(3,2000)$ con un deducible de 500:
+
+$$F(500)=1-\frac{2000}{(2000+500)^3}=0.488$$
+
+$$\mathbb{E}[(X\wedge d)]=\frac{2000}{2}*[1-(\frac{2000}{2000+500})^2]=360$$
+Recordemos que la $Pareto(\alpha,\theta)$ tiene esperanza $θ/(α − 1)$. Entonces, nuestra variable que denota esta pérdida tiene $\mathbb{E}(X) = 2000/2 = 1000$. Por lo tanto, el costo esperado por péerdida es 1000 − 360 = 640 y el costo esperado por pago es 640/(1 − 0.488) = 1250.
+
+
+## Pago esperado por reclamo considerando deducible e inflación
+
+Si consideramos un deducible de $d$ y una tasa de inflación constante $r$ el pago esperado por pérdida será:
+
+$$\mathbb{E}[(1+r)X] - \mathbb{E}[(1+r)X \wedge d] $$
+que se puede reescribir como:
+
+$$(1+r)[\mathbb{E}[X] - \mathbb{E}[X \wedge \frac{d}{1+r}] $$
+Considerando el mismo ejemplo, supongamos que tenemos una tasa de inflación $r=10\%$. 
+
+
+$$\mathbb{E}[(X\wedge \frac{500}{1.1})]=\mathbb{E}[(X\wedge 454.55]=\frac{2000}{2}*[1-(\frac{2000}{2000+454.55})^2]=336.08$$
+
+Así el costo esperado por pérdida después del efecto de inflación es $1.1*(1000-336.08)=730.32$ que incrementa un $14.11\%$ el pago sin inflación que habiamos hecho que era de 640.
+
+
+## Límite de póliza
+
+Lo opuesto al deducible es un límite de póliza. Un límite de póliza típico es un contrato donde, para las pérdidas menores a un umbral, $u$, la aseguradora paga la pérdida total, pero para aquellas mayores a $u$, la aseguradora sólo pagará $u$.
+La v. a. asociada a esta reclamación es $Y = min(X, u)$, que puede escribirse como:
+
+$$
+Y=(X\wedge u)
+\begin{cases}
+\hspace{0.4cm}X  \hspace{0.8cm} \text{si} \hspace{0.4cm} X\leq u\\
+\hspace{0.4cm} u\hspace{0.9cm} \text{si} \hspace{0.4cm} X> u 
+\end{cases}
+$$ 
+con funciones de densidad y distribución dadas por:
+
+$$
+f_Y(y)
+\begin{cases}
+\hspace{0.4cm}f_x(y)  \hspace{0.8cm} \text{si} \hspace{0.4cm} y< u\\
+\hspace{0.1cm} 1-F_x(u)\hspace{0.34cm} \text{si} \hspace{0.4cm} y= u 
+\end{cases}
+$$ 
+
+$$
+F_Y(y)
+\begin{cases}
+\hspace{0.4cm}F_x(y)  \hspace{0.8cm} \text{si} \hspace{0.4cm} y< u\\
+\hspace{0.7cm} 1\hspace{1.22cm} \text{si} \hspace{0.4cm} y\geq u 
+\end{cases}
+$$ 
+
+Continuando con el ejemplo y tomando el límite de póliza de 3000 y una tasa de inflación del 10\%.
+
+$$\mathbb{E}[(X\wedge 3000)]=\frac{2000}{2}*[1-(\frac{2000}{2000+3000})^2]=840$$
+
+Después aplicando la tasa de inflación el costo esperado será:
+
+$$1.1*\mathbb{E}[(X\wedge 3000/1.1)]=1.1*\frac{2000}{2}*[1-(\frac{2000}{2000+3000/1.1})^2]=903.11$$
+
+## Combinando todo
+
+Por supuesto, pueden aplicarse todas las modificaciones de una pó́liza que hemos visto: deducible ordinario, límite de póliza, coaseguro e inflación para generar una póliza má́s general. En este caso la variable aleatoria asociada es:
+
+$$ Y=\alpha(1+r)[(X \wedge \frac{u}{1+r})- (X \wedge \frac{d}{1+r})]$$
+
+que se puede reescribir como:
+
+$$
+Y=
+\begin{cases}
+\hspace{1.5cm}0  \hspace{2.23cm} \text{si} \hspace{0.4cm} X< \frac{d}{1+r}\\
+\\
+\hspace{0.4cm} \alpha[(1+r)X-d]\hspace{0.9cm} \text{si} \hspace{0.4cm} \frac{d}{1+r}\leq X< \frac{u}{1+r}\\
+\\
+\hspace{1cm}\alpha(u-d)  \hspace{1.48cm} \text{si} \hspace{0.4cm} X\geq \frac{u}{1+r}
+\end{cases}
+$$ 
+
+con un pago esperado por pérdida 
+
+$$ \mathbb{E}[Y^L]=\alpha(1+r)[\mathbb{E}(X \wedge \frac{u}{1+r})- \mathbb{E}(X \wedge \frac{d}{1+r})]$$
+Entonces podemos calcular todas las expresiones involucradas en estas últimas fórmulas, conociendo el modelo asociado a nuestra v.a. de pérdida!!
+
+## Modelando el límite de póliza
+
+
+```{r}
+## Pareto
+
+library(actuar)
+
+shape = 2 ; min = 3
+
+f<-function(x) {
+  dpareto1(x = x,shape = 2,min = 3)
+}
+
+## Fijamos el límite de póliza
+U<-3.5
+
+plot(f,col="red",lwd=2,
+     from = 3, to = 4, ylim=c(0,0.7))
+abline(v = U, col = "blue",lwd=2)
+
+set.seed(27)
+X<-rpareto1(n = 1000000,shape = shape,min = min)
+Y<-pmin(X,U)
+
+## Histograma de los datos < U
+hist(Y[Y<U],probability = T,col="red")
+
+fY<-function(y,u=3.5,min=3,shape=2){
+  ifelse(y<u,
+         yes=dpareto1(y,shape = shape,min = min),
+         no=1-ppareto1(u,shape = shape,min = min))
+}
+
+plot(fY,lwd=2,col="blue",from=min,to=4,add=F)
+
+## Histograma
+hist(Y,probability = T,col="red",add=T)
+
+## Esperanza teórica
+yfYL<-function(y){
+  y*fY(y)
+}
+
+## Integrando (Esperanza)
+integral<-integrate(f = yfYL,lower = min,upper = U)
+integral<-integral$value
+
+## Parte continua + parte discreta
+integral+U*(1-ppareto1(U,shape = shape,min = min))
+
+## Forma alternativa de la esperanza
+S<-function(y,min=3,shape=2){
+  1-ppareto1(y,shape = shape,min = min)
+}
+
+## Integrando (Esperanza)
+integral<-integrate(f = S,lower = min,upper = U)
+integral<-integral$value
+
+## Esperanza (alternativa)
+min + integral
+
+## Esperanza muestral
+mean(Y)
+
+```
+
+
+## Modelando el deducible y límite de póliza
+```{r}
+## Deducible y Límite de Póliza --------------------------------------------------------
+
+## Uniformes
+
+## Parámetros
+min<-1000
+max<-2000
+
+## Fijamos el límite de póliza
+U<-1900
+
+## Fijamos el deducible
+D<-1200
+
+f<-function(x) {
+  dunif(x,1000,2000)
+}
+
+plot(f,col="red",lwd=2,
+     from = min-1, to = max+1, ylim=c(0,2/1000))
+abline(v = c(D,U), col = c("green","blue"),lwd=2)
+
+set.seed(27)
+X<-runif(1000000,min,max)
+Y<-pmax(pmin(X,U)-D,0)
+
+## Histograma de los 0 < datos < U - D
+hist(Y[0<Y&Y<U-D],probability = T,col="red")
+
+fY<-function(y,d=1200,u=1900,min=1000,max=2000){
+  ifelse(y==0,
+         yes=punif(d,1000,2000),             #y=0
+         no=ifelse(test = y == u-d,
+                   yes=1-punif(u,1000,2000),      #y=u-d
+                   no =dunif(y+d,1000,2000)))         #y en (0,u-d)
+}
+
+plot(fY,lwd=2,col="blue",from=-1,to=U-D+1,add=F)
+
+## Histograma
+hist(Y,probability = T,col="red",add=T)
+
+## Esperanza teórica
+yfYL<-function(y){
+  y*fY(y)
+}
+
+## Integrando (Esperanza)
+integral<-integrate(f = yfYL,lower = 0,upper = U-D)
+integral<-integral$value
+
+## Parte continua + parte discreta
+integral+(U-D)*(1-punif(U,1000,2000))
+
+## Forma alternativa de la esperanza
+S<-function(y){
+  1-punif(y,1000,2000)
+}
+
+## Integrando (Esperanza)
+integral<-integrate(f = S,lower = D,upper = U)
+integral<-integral$value ; integral
+
+## Esperanza muestral
+mean(Y)
+
+```
+
+## Combinando todo
+```{r}
+## Exponencial
+lambda<-1/100
+
+f<-function(x){
+  dexp(x = x,rate = 1/100)
+}
+
+## Donde nos estamos fijando
+plot(f,col="red",lwd=2,
+     from = 0, to = 200)
+
+## Fijamos deducible y l??mite máximo
+D<-25 ; U <- 175
+abline(v = c(D,U), col = c("green","blue"),lwd=2)
+
+## Tomemos un coeficiente de coaseguro
+alpha<-0.25
+
+## Fijemos una tasa de inflación
+r<-0.15
+
+## Generemos una muestra de sinietros
+X<-rexp(1000000,rate = lambda)
+
+## Calculemos los pagos
+Y<-pmax(alpha*(pmin(X*(1+r),U)-D),0)
+
+## Histograma de los 0 < datos < alpha*(U - D)
+hist(Y[0<Y&Y<alpha*(U-D)],probability = T,col="red")
+
+## Densidad
+fY<-function(y,alpha=0.25,r=0.15,d=25,u=175,lambda=1/100){
+  ifelse(y==0,
+         yes=pexp(d/(1+r),rate = lambda),                         #y=0
+         no=ifelse(test = y == alpha*(u-d),
+                   yes=1-pexp(u/(1+r),rate = lambda),             #y=alpha*(u-d)
+                   no = ifelse(test = 0<y & y<alpha*(u-d),
+                               yes=dexp((y+d*alpha)/((1+r)*alpha),rate = lambda)/((1+r)*alpha), #y en (0,alpha*(u-d))
+                               no=0)))  
+}
+
+## Histograma
+hist(Y,probability = T,col="red",add=F)
+
+## Densidad
+plot(fY,lwd=2,col="blue",from=-1,to=alpha*(U-D)+1,add=T)
+
+##¿Están cayendo en donde deberían?
+
+## Observados
+mDeducible <- sum(Y==0)
+MMaximo <- sum(Y==alpha*(U-D))
+observados<-c(mDeducible,length(Y)-mDeducible-MMaximo,MMaximo)
+
+## Esperados
+esperados<-c(fY(0),1-fY(0)-fY(alpha*(U-D)),fY(alpha*(U-D)))
+
+## Prueba Ji cuadrada
+chisq.test(x = observados, p = esperados)
+
+## Por lo tanto, NO rechazamos H0 al 95% de confianza.
+
+## Comprobemos la esperanza
+
+## Esperanza teórica
+yfYL<-function(y){
+  y*fY(y)
+}
+
+## Integrando (Esperanza)
+integral<-integrate(f = yfYL,lower = 0,upper = alpha*(U-D))
+integral<-integral$value
+
+## Parte continua + parte discreta
+integral+alpha*(U-D)*(1-pexp(U/(1+r),rate = lambda))
+
+## Forma alternativa de la esperanza
+S<-function(y,min=3,shape=2){
+  1-pexp(y,rate = lambda)
+}
+
+## Integrando (Esperanza)
+integral<-integrate(f = S,lower = D/(1+r),upper = U/(1+r))
+integral<-integral$value
+
+alpha*(1+r)*integral
+
+## Esperanza muestral
+mean(Y)
+
+
+```
+
+## Cómo lo hago con la paquetería de actuar?
+
+```{r}
+## Fijamos deducible y l??mite máximo
+d <-25 ; u <- 175
+
+## Tomemos un coeficiente de coaseguro
+alpha<-0.25
+
+## Fijemos una tasa de inflación
+r<-0.15
+
+## Exponencial
+lambda<-1/100
+
+## Densidad construida a pata:
+fY<-function(y,alpha=0.25,r=0.15,d=25,u=175,lambda=1/100){
+  ifelse(y==0,
+         yes=pexp(d/(1+r),rate = lambda),                         #y=0
+         no=ifelse(test = y == alpha*(u-d),
+                   yes=1-pexp(u/(1+r),rate = lambda),             #y=alpha*(u-d)
+                   no = ifelse(test = 0<y & y<alpha*(u-d),
+                               yes=dexp((y+d*alpha)/((1+r)*alpha),rate = lambda)/((1+r)*alpha), #y en (0,alpha*(u-d))
+                               no=0)))  
+}
+
+library(actuar)
+fyL<-coverage(pdf = dexp,cdf = pexp,
+              limit=u,inflation=r,deductible=d,coinsurance=alpha,per.loss=TRUE)
+
+## Algunos valores
+fY(0)
+fyL(x = 0,rate = lambda)
+
+fY(alpha*(U-D))
+fyL(alpha*(U-D),rate=lambda)
+
+## Observados
+mDeducible <- sum(Y==0)
+MMaximo <- sum(Y==alpha*(U-D))
+observados<-c(mDeducible,length(Y)-mDeducible-MMaximo,MMaximo)
+
+## Esperados
+esperados<-c(fyL(0,rate=lambda),
+             1-fyL(0,rate=lambda)-fyL(alpha*(U-D),rate=lambda),
+             fyL(alpha*(U-D),rate=lambda))
+
+## Prueba Ji cuadrada
+chisq.test(x = observados, p = esperados)
+
+## Programando un poco...
+lambda==1/100
+f<-function(x,lambda=1/100){fyL(x,lambda)}
+
+## Algunos valores
+fY(0)
+fyL(x = 0,rate = lambda)
+f(0)
+
+fY(alpha*(U-D))
+fyL(alpha*(U-D),rate=lambda)
+f(alpha*(U-D))
+
+```
+
+
+# TAREITA
+
+Suponga que la distribució de reclamaciones de una cierta compañía aseguradora siguen una distribución $gamma(2500,2)$ y considere un coaseguro de 20%, inflación del 5% y un límite de 1300.Calcula el valor esperado de la variable de pérdida para esta cartera (considere una semilla de 553878) para cada una de las modificaciones, es decir el valor esperado de la pérdida solo con coaseguro, solo con deducible, con inflación, sólo el límite máximo y combinando todas.
+

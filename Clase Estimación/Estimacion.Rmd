@@ -1,0 +1,364 @@
+---
+title: "Estimaci?n con R . Actividad 1"
+author: "Carlos Ca?izares"
+date: "12 de Agosto 19"
+output:
+  html_document: default
+  pdf_document: default
+df_print: paged
+---
+
+Suponiendo que de cierta forma he logrado reconocer la familia a la que pertenece el modelo que pueda ajustar a los datos que estoy ibservando, el paso importante que sigue es determinar concretamente cu?l de los modelos de esta familia es el que se ajusta a nuestra informaci?n. Es decir, necesitamos t?cnicas para lograr estimar los par?metros de este modelo particular.
+
+## M?todos de estimaci?n
+
+Existen diversos m?todos para estimar los par?metros de una distribuci?n, los m?s usuales encontrados son:
+
+### M?todo de momentos. 
+
+Este m?todo propuesto por Karl Pearson $\approx 1900$ que expresa:
+
+Supongamos que observamos los valores de una muestra aleatoria $x_1,x_2,...,x_n$ de una distribuci?n $F(x|\theta)$, donde $\theta=(\theta_1,\theta_2,...,\theta_r)$ es un vector de $r$ par?metros. Denotando a $\mu_k(\theta)=\mathbb{E}[X^k|\theta]$, el $k-?simo$ momento poblacional, es decir:
+
+
+$$\mu_k(\theta)=\mathbb{E}[X^k|\theta]=\int x^k f(x) dx $$
+
+Y por:
+
+$$M_k = \frac{1}{n} \sum_{i=1}^{n}x_{i}^{k}$$
+
+
+el correspondiente $k-?simo$ momento muestral. 
+
+El m?todo de momentos consiste en igualar los primeros $r$ momentos poblacionales a sus correspondientes $r$ momentos muestrales y resolver el sistema de ecuaciones simult?neas que resulte, es decir:
+
+$$\mu_k(\theta)= \frac{1}{n} \sum_{i=1}^{n}x_{i}^{k} \hspace{5em} k=1,2,...,r$$
+Este sistema tendr? como soluciones a los estimadores $\hat{\theta}=(\hat{\theta_1},\hat{\theta_2},...,\hat{\theta_r},)$
+
+### Ejemplo de la Normal($\mu$,$\sigma^2$)
+
+Como en este caso tenemos dos par?metros, entonces tenemos dos ecuaciones, por ello:
+
+$$\mu_1=\mu_1(\mu,\sigma^2)=\mathbb{E}[X]=\mu=\bar{x}$$
+
+Por lo tanto 
+$$\hat{\mu}=\bar{x}$$
+
+Luego
+
+$$\displaystyle \mu_2=\mu_2(\mu,\sigma^2)=\mathbb{E}[X^2]=\sigma^2+\mu^2=\frac{1}{n}\sum_{i=1}^{n}x_{i}^{2}$$
+
+as?
+
+$$\displaystyle \sigma^2=\frac{1}{n}\sum_{i=1}^{n}x_{i}^{2}-\mu^2=\frac{1}{n}\sum_{i=1}^{n}x_{i}^{2}-\bar{x}^2=\frac{1}{n}\sum_{i=1}^{n}(x_{i}-\bar{x})^2$$
+
+
+Es decir:
+
+$$\hat{\sigma^2}=\frac{1}{n}\sum_{i=1}^{n}(x_{i}-\bar{x})^2 \hspace{2em} No \ es\  S^2$$
+
+por lo tanto, los estimador por momentos de ambos par?metros son:
+
+$$ \left ( \hat{\mu}=\frac{1}{n}\sum_{i=1}^{n}x_{i} \ \ , \ \  \hat{\sigma^2}=\frac{1}{n}\sum_{i=1}^{n}(x_{i}-\bar{x})^2  \right )$$
+
+
+### M?todo por m?xima verosimilitud. 
+
+Es quiz?s el m?todo m?s com?n y utilizado para estimar par?metros. Definiendo la *verosimilitud* como la distribuci?n conjunta de la muestra. Si los datos llegasen a ser continuos, esta es propiamente una funci?n de distrivuci?n conjunta, y en caso de que sean discretos, es una cunci?n conjunta de probabilidad.
+
+Es importante notar que necesitas proceder a maximizar dicha *verosimilitud* con respecto a los par?metros de inter?s. Los valores de los par?metros que la maximizan son los *estimacores m?ximo varos?miles*. Debido al hecho com?n de que las observaciones se suponen *independientes e identimcamente distribuidas (i.i.d)* la forma de la verosimilitud es de la forma:
+
+$$ L(\theta,\underline{X})=\prod_{i=1}^{n}f(x_i|\theta)$$
+Generalmente la veros?militud no se maximiza, y tulizamos el logaritmo de la misma (conocida como la *log - verosimilitud*)
+
+
+$$\mathcal{l}(\theta,\underline{X})= log[] L(\theta,\underline{X})]=\sum_{i=1}^{n}logf(x_i|\theta)$$
+Esto podemos hacerlo dado que el punto donde se alcanza el m?ximo versimil es el mismo que se alcanza con la *log-verosimilitud* dado que la funci?n logaritmo es una funci?n mon?tona creciente.
+
+Adicional, los estimadores m?ximo veros?miles tienen varias de las propiedades que deseamos en un buen estimador (insesgamiento, consistencia, eficiencia) aunque algunas de ellas s?lo lo alcanzan de forma asint?tica.
+
+Adicional, una de las caracter?sticas m?s importantes de dicho estimador es que este tiene una distribuci?n asint?tica normal.
+
+$$\hat{\theta}_{MV} \overset{a}{\sim} N(\theta,\hat{var}(\hat{\theta}_{MV}))$$
+
+
+Existen otros dos m?todos importantes para estimar par?metros:
+
+* M?todo de estimaci?n de par?metros a trav?s de gualaci?n de percentiles.
+
+* M?todo de M?nimos Cuadrados.
+
+Adem?s de la estimaci?n desde el *enfoque bayesiano*
+
+
+En clase vimos algunas cosas:
+
+## ?Qu? significa que un estimador sea insesgado?
+
+Consideremos $x_1, x_2,...,x_n$ una muestra aleatoria de la distribuci?n $N(\mu,\sigma^2)$ y consideremos las siguientes estad?sticas:
+
+* $T_1(\underline{X})$ = $\bar{X}$
+
+
+* $T_2(\underline{X})$ = $S^2$ = $\displaystyle \frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar{X})^2$
+
+
+* $T_3(\underline{X})$ = $\sigma^2$ = $\displaystyle \frac{1}{n}\sum_{i=1}^{n}[(x_i-\bar{X})^2]=\frac{n-1}{n}S^2$
+
+
+
+
+Notemos que $T_1$, $T_2$ son insesgados pero $T_3$ no lo es... ?Porqu?? 
+
+Adicionalmente: 
+
+* El $ECM_{T_1}$ = $\mathbf{V}(\mu)$ = $\frac{\sigma^2}{n}$
+
+  
+* El $ECM_{T_2}$ = $\mathbf{V}(S^2)$ = $\dfrac{2\sigma^4}{(n-1)}$
+
+
+Como $T_3$ no es insesgado:
+
+
+* $ECM_{T_3}$ = $\dfrac{2(n-1)}{n^2\sigma^4}+\dfrac{\sigma^4}{n^2}$
+
+ 
+ 
+En este caso $T_2$ es insesgado, sin embargo, tiene un ECM mayor a $T_2$ lo cual implica que ser un estimador insesgado no siempre implica tener un $ECM$ menor
+
+Veamos graficamente esto
+
+### Se simula un conjunto de $M=1000$ muestras de tama?o $n=3$ cada una. Los estimadores $T_1(\underline{X})$, $T_2(\underline{X})$ y $T_3(\underline{X})$ 
+
+
+```{r}
+c1<-rnorm(1000,0,1)
+c2<-rnorm(1000,0,1)
+c3<-rnorm(1000,0,1)
+
+
+
+c<-cbind(c1,c2,c3)
+
+T1X<-apply(c, 1, mean)
+T2X<-apply(c,1,function(x) (1/2)*sum((x-mean(x))^2))
+T3X<-apply(c,1,function(x) (1/3)*sum((x-mean(x))^2))
+```
+
+
+### T1 si es insesgado
+```{r}
+plot(T1X,pch=16)
+abline(h=0, col="red",lty=1,lwd=4)
+```
+
+
+### T2 Y T3 Comparemos (RECORDEMOS QUE T2 SI ES INSESGADO)
+
+```{r}
+par(mfrow=c(1,2))
+
+plot(T2X,pch=16)
+abline(h=1, col="red",lty=1,lwd=4)
+
+plot(T3X,pch=16,col="blue")
+abline(h=1, col="red",lty=1,lwd=4)
+
+par(mfrow=c(1,1))
+```
+
+
+?Qu? diferencias se aprecian o que conclusiones podriamos tener?
+
+
+### Adem?s veamos el comportamiento asint?tico de los estimadores
+
+Recordamos que la consistencia tiene que ver con los tama?os de muestras grandes, es decir, es una propiedad asint?tica Un estimador, en general, es consistente si:
+
+Sea $T_1, T_2, ... , T_n$ una sucesi?n de estimadores de $\tau(\theta)$ donde $T_n$ est? basado en una muestra de tama?o $n$. 
+
+Esta sucesi?n de estimadores de $\tau(\theta)$ es consistente en error cuadr?tico medio si: 
+
+$$\displaystyle\lim_{n \to \infty} ECM_{T_n} = 0$$
+
+
+
+### Ejemplo 
+
+Pensemos en x_1,...,x_n una m.a. de la distribuci?n $N(\mu,\sigma^2)$. Considere los estimadores $\bar{X}_n$ y $S^2_n$ para $\sigma^2$. 
+
+Los dos son consistentes
+
+### Simularemos un conjunto de $n=1000$ muestras de tama?o $i$ para $i=2,...,n$.
+
+
+```{r}
+S2=function(x){ 
+    s2<-(1/length(x))*sum((x-mean(x))^2)
+    return(s2)
+    }
+  
+
+n<-5000
+T1X<-rep(1,n)
+T1X<-rep(1,n)
+
+for( i in 2:n){
+T1X[i]<-mean(rnorm(i))
+
+T2X[i]<-S2(rnorm(i))
+  
+}
+```
+
+### Las gr?ficas para ver la consistencia de manera gr?fica
+
+
+
+
+```{r}
+# plot(T1X,pch=16,xlab="Tama??o de Muestra",ylab="Estimaci?n de T1(X)",main="Xbar Consistente")
+# abline(h=0, col="red",lty=1,lwd=4)
+# 
+# plot(T2X,pch=16,xlab="Tama??o de Muestra",ylab="Estimaci?n de T1(X)",main="S^2 Consistente",col="blue")
+# abline(h=1, col="red",lty=1,lwd=4)
+```
+
+
+
+
+
+
+## C?mo hacemos estimaci?n en R
+
+Haremos uso de la libreria *fitdistrplus* en espec?fico de su funci?n *fitdist*
+
+
+```{r}
+library(fitdistrplus)
+library(actuar)
+```
+
+Por ejemplo, simulare? (para ver el ejercicio) $10,000$ v.a. $gamma(\alpha=1.5,\beta=3)$ y con la funci?n *fitdist* encontrar? v?a momentos y maxima verosimilitud los par?metros de los datos que le estos indicando, en este caso, las gammas simuladas. Estos datos pueden ser datos observados de siniestros por ejemplo, es decir, esta es la muestra aleatoria.
+
+```{r}
+set.seed(5538)
+gammas<-rgamma(10000,1.5,3)
+parefit<-fitdist(gammas,"gamma", method="mme")
+parefit
+```
+
+```{r}
+set.seed(5538)
+gammas<-rgamma(10000,1.5,3)
+parefit<-fitdist(gammas,"gamma", method="mle")
+parefit
+```
+
+Veamos el ejemplo con la Burr(2.5,4,1). En este caso es conveniente enlistarle valores de entrada al ajuste por fitdist, ya que podr?a no encontrar raices.
+
+```{r}
+set.seed(5538)
+burrs<-rburr(10000,2.5,4,1)
+parefit<-fitdist(burrs,"burr",start=list(shape1=5,shape2=1,scale=2),"mle")
+parefit
+```
+
+## Weibull(6,4)
+
+```{r}
+set.seed(5538)
+weis<-rweibull(10000,6,4)
+parefit<-fitdist(weis,"weibull", lower=0, "mle")
+parefit
+```
+
+## LogNormal(123,32)
+
+```{r}
+set.seed(5538)
+lnorms<-rlnorm(10000,123,32)
+parefit<-fitdist(lnorms,"lnorm", method="mle")
+parefit
+```
+
+## Exponencial(12)
+
+```{r}
+set.seed(5538)
+exps<-rexp(10000,12)
+parefit<-fitdist(exps,"exp", method="mme")
+parefit
+```
+
+
+
+
+
+
+# Entonces de tarea tendr?n lo siguiente:
+
+
+# 1. Investigar como funciona la funci?n fitdist.
+
+
+# 2. Para la variable $Gamma(\alpha,\beta)$ obtenga los estimadores maximo veros?miles y fijando una semilla de 5538 simule $n=10,000$valores de una $Gamma(1.5,2)$. ?Considera que son iguales?  
+
+$$ \hat\lambda_{MV}=\frac{nr}{\sum_{i=1}^{n}(x_{i})} $$
+
+$$ \psi(r)=ln(\lambda)+\frac{1}{n}\sum_{i=1}^{n}log(x_{i}) $$
+Donde: 
+$$ \psi(r)= \frac{\Gamma'(r)}{\Gamma(r)} $$ 
+es la función digamma.
+
+
+```{r}
+set.seed(5538)
+fit_gamma<-fitdist(rgamma(10000,1.5,2),distr = "gamma" , method = "mle") 
+fit_gamma$estimate
+```
+
+```{r}
+set.seed(5538)
+gammas<-rgamma(30000,1.5,2)
+Media<-mean(gammas)
+S2<-mean((gammas-mean(gammas))^2)
+
+## Con ello
+alpha<-Media^2/S2 ; beta<-Media/S2
+
+## log-verosimilitud
+log.verosim<-function(theta) - sum(log(dgamma(gammas, theta[1], theta[2])))
+
+logmax<- nlm(log.verosim,c(alpha,beta))
+logmax$estimate
+```
+
+
+
+
+
+# 3. Obtendr?n el estimador *M?ximo Veros?mil* para $\alpha$ asumiendo $\theta$ conocido para una variable aleatoria $X\sim Pareto(\alpha,\theta)$ de segundo tipo, es decir con funci?n de densidad:
+
+
+$$f_{X}(x)=\frac{\alpha \theta^{\alpha}}{(x+\theta)^{\alpha-1}}, \hspace{3em} x\geq 0, \ \ \alpha>0, \ \ \theta>0 $$
+con ello fijaran una semilla de 5538, y con la librer?a *actuar* simular?n $n=10,000$ valores de dicha pareto, con ellos calcula el estimador optenido en el punto anterior. ?Es parecido al valor real?
+
+```{r}
+set.seed(5538)
+paretos<-rpareto2(10000,shape = 3, scale = 2)
+paretofit<-fitdist(paretos, distr = "pareto2", method = "mle", fix.arg = list(scale=2), start = list(shape=3))
+paretofit
+```
+
+
+$$\alpha=\frac{n}{\sum_{i=1}^{n}log(x_i + \theta)-nlog(\theta)}$$
+
+```{r}
+maximovero<-10000/(sum(log(paretos+2))-(10000*log(2)))
+maximovero
+```
+
+SUERTE!!
+

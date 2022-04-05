@@ -1,0 +1,517 @@
+---
+title: "Transformando variables. Actividad 2"
+author: "Carlos Cañizares"
+date: "20 de Agosto 19"
+output: html_document
+df_print: paged
+---
+
+En algunas partes de nuestro que hacer actuarial no spodremos preguntar: ¿Cómo nuevas distribuciones pueden ser creadas a partir de otras ya existentes?. Esta pregunta es muy imporante dado que este tipo de "condiciones" o de transformaciones suelen aparecer en diversas aplicaciones Actuariales.
+
+Exponemos las transformaciones más usuales:
+
+### Multiplicación por una constante:
+
+Este tipo de tranformación es usual al trabajar sobre transformaciones de varaibles que denoten pérdida. Dos de los ejemplos más clásicos de este tipo de transformación son la inflación y el coaseguro:
+
+Consideremos una tasa de **inflación uniforme** $r\geq 0$ y tomemos $X$ el monto de pérdida asociado a un siniestro, vamos a pensar que, de materializarse un siniestro éste sufrirá un cambio en su valor monetario provocado por la inflación, de tal manera que la aseguradora deberá pagar:
+
+$$Y=(1+r)X$$ 
+
+Ahora, Denotando a $X$ como el monto de pérdida asociado a un siniestro, luego, tomemos $\alpha \epsilon (0,1]$ un **factor de coaseguro**, el cual es la proporción de pago que le corresponde a la CIA de seguros, mientras el poseedor de la póliza paga la fracción restante, la v.a. de pago por parte de la aseguradora es: 
+
+$$Y=\alpha X$$ 
+
+
+Y vimos el teorema siguiente:
+
+#### Teorema
+Sea $X$ una v.a.c. con pdf y cdf conocida. Sea $Y=\theta X$ con $\theta >0$ entonces:
+
+$$F_Y(y)=F_X(\frac{y}{\theta}) \hspace{2em};\hspace{2em} f_Y(y)=\frac{1}{\theta}f_X(\frac{y}{\theta})$$
+
+*Nota: el soporte de Y estará dado por $\{y|\frac{y}{\theta}\in sop\{x\}\}$//*
+
+
+Obtener la esperanza de esta variable aleatoria es trivial en términos de la esperanza de $X$, debido a la linealidad de la esperanza, se tiene que: 
+
+$$\mathbb{E}[Y]=\mathbb{E}[\theta X]=\theta\mathbb{E}[X]$$ 
+
+Es claro, además, que el parámetro $\theta$ será un parámetro de escala para la variable Y
+
+
+Ejemplo (coaseguro): 
+
+Sea $X\sim Unif(100,200)$ y consideremos $\theta=50\%$ así; $Y=\theta X$ implica que: 
+
+$f_Y(y)=\frac{1}{0.5}f_X\left(\frac{y}{0.5}\right)=2f_X(2y)=2\left(\frac{1}{200-100}\mathbb{I}_{(100,200)}^{(2y)}\right)$
+
+*//*$100\leq2y\leq200 \Leftrightarrow 50\leq y \leq 100$*//*
+
+$=\frac{1}{50}\mathbb{I}_{(50,100)}^{(y)}=\frac{1}{100-50}\mathbb{I}_{(50,100)}^{(y)}$
+
+$\therefore Y=0.5X\sim Unif(50,100)$ 
+
+$\Rightarrow \mathbb{E}[Y]=0.5\mathbb{E}[X]=0.5\left(\frac{100+200}{2}\right)=75$ 
+
+
+Ejemplo (Inflación):
+
+Sea $X\sim Unif(0,100)$, consideremos $r=10\%$, así; $Y=(1+r) X$ tenemos que: 
+
+$f_Y(y)=\frac{1}{(1+r)}f_X\left(\frac{y}{(1+r)}\right)=\frac{1}{(1.1)}f_X\left(\frac{y}{(1.1)}\right)=\frac{1}{(1.1)(1000)}\mathbb{I}_{(0,1000)}^{\left(\frac{y}{1.1}\right)}$
+
+*//* $0\leq \frac{y}{(1.1)}\leq1000 \Leftrightarrow 0\leq y \leq 1100$ *//*
+
+$=\frac{1}{1100}\mathbb{I}_{(0,1100)}^{(y)}$
+
+$\therefore Y=(1.1)X\sim Unif(0,1100)$ 
+
+$\Rightarrow \mathbb{E}[Y]=(1+r)\mathbb{E}[X]=1.1\left(\frac{1000}{2}\right)=550$ 
+
+*//Observación: La inflación aumenta el valor esperado del siniestro.//* 
+
+```{r}
+###############
+## Coaseguro ##
+###############
+
+
+## Uniforme 
+min<-100 ; max <- 200
+set.seed(27)
+X<-runif(100000,min,max)
+
+## Fijamos un factor de coaseguro
+alpha<-0.5
+Y<-0.5*X
+
+## Comparemos nuestras poblaciones
+
+## Sin coaseguro
+hist(X,col="blue",probability = T, main="Hist. Sin Coaseguro")
+abline(h=1/100,col="red",lwd=2)
+mean(X)
+
+## Con coaseguro
+hist(Y,col="blue",probability = T,main="Hist. Con Coaseguro")
+abline(h=1/50,col="red",lwd=2)
+0.5*mean(X)
+mean(Y)
+```
+
+
+```{r}
+###############
+## Inflación ##
+###############
+
+## Uniforme 
+min<-0 ; max <- 1000
+set.seed(27)
+X<-runif(100000,min,max)
+
+## Fijamos un factor de coaseguro
+r<-0.1
+Y<-(1+r)*X
+
+## Comparemos nuestras poblaciones
+
+## Sin inflación
+hist(X,col="blue",probability = T)
+abline(h=1/1000,col="red",lwd=2)
+mean(X)
+
+## Con inflación
+hist(Y,col="green",probability = T)
+abline(h=1/1100,col="red",lwd=2)
+(1+r)*mean(X)
+mean(Y)
+```
+
+
+
+
+
+
+
+### Elevando a una potencia:
+
+Este tipo de tranformación es muy usual y de aquí se desprenden diversas familias de distribuciones parámetricas que llevan el palleido de *inversa, transformada o transformada inversa*
+
+
+#### Teorema
+Sea $X$ una v.a.c. con pdf y cdf conocida y además $F_X(x)=0$. Sea $\displaystyle Y=X^{\frac{1}{\tau}}$ entonces:
+
+a) Si $\tau>0$
+
+$$F_Y(y)=F_X(y^{\tau}) \hspace{2em};\hspace{2em} f_Y(y)=\tau y^{\tau-1}f_X(y^\tau)$$
+
+a) Si $\tau>0$
+
+$$F_Y(y)=1-F_X(y^{\tau}) \hspace{2em};\hspace{2em} f_Y(y)=-\tau y^{\tau-1}f_X(y^\tau)$$
+
+Aquí la observación es:
+
+i) Si $\tau>0$ entonces le llamos *Transformada*.
+
+
+ii) Si $\tau=-1$ entonces le llamos *Inversa*.
+
+
+iii) Si $\tau>0$ entonces le llamos *Inversa Transformada*.
+
+
+Además mostramos que si X tiene distribución exponencial y definimos a $Y=\theta X^{\frac{1}{\tau}}$. Operando primero sobre la tranformación de potencia y después evaluando sobre la operación de escala. Es decir haciendo primero $W=X^{\frac{1}{\tau}}$ y después
+$Y=\theta W$ mostramos que:
+
+#### Inversa ($\tau=-1$)
+
+$F(w)=e^{-\frac{1}{w}}$
+
+$F(y)=e^{-\frac{\theta}{y}}$ 
+
+y así:
+
+$f(w)=w^{-2}e^-w^{-1}$
+
+$f(y)=\frac{1}{\theta}*(\frac{y}{\theta})^{-2}*e^{-(\frac{y}{\theta})^{-1}}=\frac{\theta e^{-(\frac{\theta}{y})}}{y^2}$ 
+
+Que es la distribución exponencial Inversa.
+
+
+
+
+#### Exponencial Transformada ($\tau>0$)
+
+$F(w)=1-e^{-w^{\tau}}$
+
+$F(y)=1-e^{-(\frac{y}{\theta})^{\tau}}$ 
+
+y así:
+
+$f(w)=\tau w^{\tau - 1} e^{-w^{\tau}}$
+
+$f(y)=\frac{1}{\theta}*\tau*(\frac{y}{\theta})^{\tau - 1}*e^{-(\frac{y}{\theta})^{\tau}}=\frac{\tau(\frac{y}{\theta})^{\tau} e^{-(\frac{y}{\theta})^{\tau}}}{y}$ 
+
+Que es la distribución Weibull.
+
+
+
+
+
+#### Inversa Transformada de la exponencial ($\tau<0$)
+
+$F(w)=e^{-w^{-\tau}}$
+
+$F(y)=e^{-(\frac{y}{\theta})^{-\tau}}=e^{-(\frac{\theta}{y})^{\tau}}$ 
+
+y así:
+
+$f(w)=-\tau w^{\tau - 1} e^{-w^{\tau}}$
+
+$f(y)=\frac{1}{\theta}*-\tau*(\frac{y}{\theta})^{\tau - 1}*e^{-(\frac{y}{\theta})^{\tau}}=\frac{\tau(\frac{\theta}{y})^{\tau} e^{-(\frac{\theta}{y})^{\tau}}}{y}$ 
+
+Que es la distribución Weibull Inversa.
+
+
+```{r}
+library(actuar)
+## Transformación elevando a la potencia
+
+## Exponencial normal
+f1<-function(x,lambda){
+  f<-(1/lambda)*exp(-x/lambda)
+  return(f)
+}
+
+
+## Exponencial Inversa 
+f2<-function(y,lambda){
+  f<-(lambda*exp(-lambda/y))/(y^2)
+  return(f)
+}
+
+
+## Exponencial Transformada (Weibull) 
+f3<-function(y,lambda,tau){
+  f<-(tau*((y/lambda)^tau)*exp(-(y/lambda)^tau))/y
+  return(f)
+}
+
+
+x<-seq(0,10,by=0.01)
+lambda<-2
+tau<-2
+
+
+y1<-f1(x,lambda)
+y2<-f2(x,lambda)
+y3<-f3(x,lambda,tau)
+
+plot(x,y1,type="l",lty=2,lwd=2)
+lines(x,y2,type = "l",col="red",lwd=2)
+lines(x,y3,type = "l",col="blue",lwd=2)
+
+### Quisiera comparar con la weibull
+
+weis<-rweibull(100000,2,2)
+plot(density(weis))
+lines(x,y3,type = "l",col="blue",lwd=2)
+
+```
+
+
+
+
+### Exponenciación:
+
+#### Teorema
+Sea $X$ una v.a.c. con pdf y cdf conocida y además $f_X(x)>0$ para todo $x\in  \mathbb{R}$. Sea $\displaystyle Y=exp(X)$ entonces para $y>0$:
+
+
+$$F_Y(y)=F_X(ln(y)) \hspace{2em};\hspace{2em} f_Y(y)=\frac{1}{y}f_X(ln(y))$$
+
+El ejemplo más claro de este es:
+
+Considere $X\sim N(\mu,\sigma^2)$. Determinar cdf y pdf de $Y=e^{X}$
+
+$F_Y(y)=F_x(ln(y))=\Phi(\frac{ln(y) - \mu}{\sigma})$
+
+$f_Y(y)=\frac{1}{y}f_x(ln(y))=\frac{1}{y}*\frac{1}{\sqrt{2\pi \sigma^2}}* e^{-\frac{(ln(y)-\mu)^2}{2\sigma^2}}$
+
+
+
+Que es una distribución Lognormal, además si agregamos una nueva variable aleatoria llamada $Z=\theta Y$ demostramos que esta tiene distribución Lognormal, pero la adición de un tercer parámetro no adiciona valor. ¿Porqué?
+
+
+
+
+
+
+
+### Mezcla
+
+#### Teorema
+Sea $X$ una v.a con pdf $f_{x|\Lambda}(x|\lambda)$ y cdf $F_{x|\Lambda}(x|\lambda)$  conocida donde $\lambda$ es un parámetro de $X$. Si bien "X" puede tener otros parámetros, ests no serán relevantes. Consideremos $\lambda$ una realización de la v.a. $\Lambda$ con pdf $f_\Lambda(\lambda)$, entonces la probabilidad incondicional de $X$ es:
+
+
+$$f_X(x)=\int f_{x|\Lambda}(x|\lambda) f_\Lambda(\lambda) d\lambda$$
+
+Además mostramos en clase que:
+
+$$F_X(x)=\int F_{x|\Lambda}(x|\lambda) f_\Lambda(\lambda) d\lambda$$
+
+Que nos permitió ver a ambas como una esperanza, específicamente:
+
+$$f_X(x)=\mathbb{E}_{\Lambda}[f_{x|\Lambda}(x|\lambda)]$$
+$$F_X(x)=\mathbb{E}_{\Lambda}[F_{x|\Lambda}(x|\lambda)]$$
+
+Que tiene sentido visto desde el punto de vista empírico o de razón.
+
+Además demostramos que:
+
+
+
+$$\mathbb{E^k}=\mathbb{E}[\mathbb{E(X^k|\Lambda)}]$$
+Lo cual de nuevo nos hace sentido, el k-ésimo momento debería ir acorde a obtener la esperanza de todas las esperanzas condicionadas de las observaciones de la variable aleatoria $\Lambda$.
+ 
+Además vimos que:
+
+$$\mathbb{Var}(x)=\mathbb{E}[\mathbb{Var}(X|\Lambda)]+\mathbb{Var}(\mathbb{E}[X|\Lambda])$$
+Que de nuevo pareciera ser un resultado razonable desde el punto de vista no abstracto.
+
+Además, observamos dinstintas cosas:
+
+1) Si $f_\Lambda(\lambda)$ es discreta, las integrales calculadas pueden ser facilmente reemplazadas por sumas.
+
+2) Las distribuciones de Mezclas tienden a ser de colas muy pesadas, por ello, este método es una buena forma de genera un modelo con estas características dado que si $f_{X|\Lambda}(x|\lambda)$ tiene una tasa de riesgo decreciente (cola pesada) entonces la mezcla también tendra una tasa de riesgo decreciente (en ocasiones más decreciente).
+
+
+#### De este ejemplo se pidió:
+
+Considerando $X|\Lambda$ una distribución $exp(\frac{1}{\Lambda})$. Considerando que $\Lambda \sim Gamma(\alpha,theta)$, determinar la distribución incondicional de $X$.
+
+
+Si  $\Lambda \sim Gamma(\alpha,theta)$ entonces:
+
+$$f(\lambda)=\frac{(\theta\lambda)^{\alpha-1}}{\Gamma(\alpha)} \theta e^{-\theta \lambda}$$
+
+
+Además si $X|\Lambda$ tiene distribución $exp(\frac{1}{\Lambda})$
+
+$$f(x)=\lambda e^{-x\lambda}$$
+
+Por lo que:
+
+$$f_X(x)=\int_{0}^{\infty}\lambda e^{-x\lambda} *  \frac{e^{-\theta \lambda} \theta (\theta \lambda )^{\alpha-1}}{\Gamma(\alpha)}$$
+
+así:
+
+$$f_X(x)=\frac{\theta^{\alpha}}{\Gamma(\alpha)} \int_{0}^{\infty} \lambda e^{-\lambda x} \lambda^{\alpha-1} e^{-\theta \lambda}$$
+
+Por lo que:
+
+$$f_X(x)=\frac{\theta^{\alpha}}{\Gamma(\alpha)} \int_{0}^{\infty} \lambda^{\alpha} e^{-\lambda (x+\theta)} $$
+
+Y finalmente:
+
+$$f_X(x)=\frac{\theta^{\alpha}}{\Gamma(\alpha)} * \frac{\Gamma(\alpha-1)}{(x+\theta)^{\alpha+1}}=\frac{\alpha \theta^{\alpha}}{(x+\theta)^{\alpha+1}} $$
+
+La cual es la densidad de una Pareto!!!!!
+
+
+
+
+
+
+
+# Entonces de tarea tendrán lo siguiente:
+
+
+# 1. De los ejercicios descritos para exponenciación y de mezclas, realice el código de R que muestre que efectivamente las distribuciones encontradas (o "creadas") son efectivamente las que estamos buscando.
+
+Queriamos ver que la exponenciación de una Normal se convierte en una Lognormal:
+
+```{r}
+
+## funcion de densidad de la transformacion
+
+expo<- function(y,mu,sigma){
+  exp<-(1/y)*(1/(2*pi*sigma^2)^(1/2))*exp(-((log(y)-mu)^2)/(2*sigma^2))
+  return(exp)
+}
+
+
+n<-100000
+mu<-10
+s<-0.2
+
+x<-seq(0,n,by= 10)
+y<-expo(x,mu,s)
+
+
+plot(density(rlnorm(n,mu,s)),main = "Densidad de la LogNormal")
+lines(x,y,type = "l" ,col= "blue",lwd=2,lty=1)
+
+```
+
+
+Luego veriamos que la mezcla de la exponencial donde su parámetro es gamma es una pareto
+
+```{r}
+
+## funcion de densidad de la transformacion
+
+library("actuar")
+
+trans<- function(y,alpha,theta){
+  x<-(alpha*theta^alpha)/((y+theta)^(alpha + 1))
+  return(x)
+}
+
+x<-seq(0,7,by=0.01)
+y<-trans(x,11,1.1)
+
+
+plot(density(rpareto(100000,11,1.1)),main = "Pareto vs Transformación")
+lines(x,y,type = "l" ,col= "red",lwd=2)
+
+
+```
+
+
+2. Considere $X$ con distribución $Pareto(\alpha,\beta)$. Considere a $Y=ln(1+\frac{X}{\theta})$. Determine el nombre de la distribución $Y$ y sus parámetros. Después genere un código en R que compare a ambas y muestre que efectivamente son la misma distribución. 
+
+$$F_Y(y)=\mathbb{P}(Y\leq y)=\mathbb{P}(ln(1+X/\theta)\leq y)$$
+luego
+
+$$=\mathbb{P}(1+X/\theta\leq e^y)=\mathbb{P}(X\leq \theta(e^y-1))$$
+evaluando esta distribución:
+$$=1-[\frac{\theta}{\theta+\theta(e^y-1)}]^\alpha=1-(\frac{1}{e^y})^\alpha=1-e^{-\alpha y}$$
+La cual es una distribución exponencial con parámetro $1/\alpha$
+
+
+```{r}
+
+n <- 100000
+
+alpha <- 10
+beta <- 4
+theta <- 4
+
+x<-rpareto(n, alpha, theta) 
+y<-log(1+ x/theta)
+
+exponen<-rexp(100000, alpha)
+
+plot(density(exponen), main = "Trasformación Pareto via Logaritmo Natural")
+lines(density(y), type = "l", col="green", lwd=2)
+```
+
+
+
+3. Considere $X$ con distribución $Pareto(\alpha,\beta)$. determine la cdf de la distribución inversa, transformada e inversa transformada. ¿Estas "nuevas" distribuciones tiene un nombre en especial?. Después genere un código en R que compare a ambas y muestre que efectivamente son la misma distribución. 
+
+
+Inversa:
+
+$$F_Y(y)=1-[1-(\frac{\theta}{\theta+y^{-1}})^\alpha]=(\frac{y}{y+\theta^{-1}})^\alpha$$
+Que es la Pareto inversa con $\tau=\alpha$ y $\theta=1/\theta$
+
+
+
+Transformada:
+
+$$F_Y(y)=1-(\frac{\theta}{\theta+y^\tau})^\alpha$$
+
+Que es la distribución Burr con $\alpha=\alpha$, $\gamma=\tau$ y $\theta=\theta^{\frac{1}{\tau}}$
+
+
+Transformada Inversa:
+
+$$F_Y(y)=1-[1-(\frac{\theta}{\theta+y^{-\tau}})^\alpha]=(\frac{y^\tau}{y^\tau+(\theta^{-1/\tau})^\tau})^\alpha$$
+
+Que es la distribución Burr inversa con $\tau=\alpha$, $\gamma=\tau$ y $\theta=\theta^{-\frac{1}{\tau}}$
+
+
+### Burr
+
+```{r}
+set.seed(553878)
+tau <- 8
+alpha<-2
+beta<-3
+paretos<-rpareto(100000, alpha, beta)
+y <- paretos^(1/tau)
+
+
+burrs<-rburr(100000, alpha, tau, theta^(-1/tau))
+
+plot(density(burrs), main = "Pareto Trans = Burr")
+lines(density(y), type = "l", col="darkgreen", lwd=2)
+```
+
+
+### Burr inversa
+
+```{r}
+set.seed(553878)
+alpha <- 9
+beta <- 3
+theta <- 3 #son las mismas
+
+
+tau <- -5
+paretos <- rpareto(100000, alpha, beta)
+y <- paretos^(1/tau)
+
+burrsinversas<-rinvburr(100000, alpha, -tau, theta^(-1/tau))
+
+plot(density(burrsinversas), main = "Pareto Trans Inversa = Burr Inversaa")
+lines(density(y), type = "l", col="orange", lwd=2)
+```
+
+
+SUERTE!!
+
